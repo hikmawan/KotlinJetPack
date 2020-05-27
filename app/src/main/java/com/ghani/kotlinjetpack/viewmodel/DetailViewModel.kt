@@ -1,15 +1,19 @@
 package com.ghani.kotlinjetpack.viewmodel
 
+import android.app.Application
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import com.ghani.kotlinjetpack.model.DogBreed
+import com.ghani.kotlinjetpack.model.DogDatabase
+import kotlinx.coroutines.launch
 
-class DetailViewModel:ViewModel() {
+class DetailViewModel(application: Application):BaseViewModel(application) {
 
     val dogLiveData = MutableLiveData<DogBreed>()
 
-    fun fetch(){
-        val dog1 = DogBreed("1","Bulldog", "10 years", "breed group", "breedFor", "temperament", "")
-        dogLiveData.value = dog1
+    fun fetch(uuid: Int){
+        launch {
+            val dog = DogDatabase(getApplication()).dogDao().getDog(uuid)
+            dogLiveData.value = dog
+        }
     }
 }
