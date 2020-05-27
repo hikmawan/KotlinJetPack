@@ -5,10 +5,8 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.Navigation
+import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 
 import com.ghani.kotlinjetpack.R
@@ -31,7 +29,7 @@ class ListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel = ViewModelProvider(this).get(ListViewModel::class.java)
+        viewModel = ViewModelProviders.of(this).get(ListViewModel::class.java)
         viewModel.refresh()
 
         dogsList.apply {
@@ -43,7 +41,7 @@ class ListFragment : Fragment() {
             dogsList.visibility = View.GONE
             listError.visibility = View.GONE
             loadingView.visibility = View.VISIBLE
-            viewModel.refresh()
+            viewModel.refreshBypassCache()
             refreshLayout.isRefreshing = false
         }
 
