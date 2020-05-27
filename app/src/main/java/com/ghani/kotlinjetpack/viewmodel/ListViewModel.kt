@@ -1,18 +1,20 @@
 package com.ghani.kotlinjetpack.viewmodel
 
+import android.app.Application
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.ghani.kotlinjetpack.model.DogBreed
+import com.ghani.kotlinjetpack.model.DogDatabase
 import com.ghani.kotlinjetpack.model.DogsApiService
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.observers.DisposableSingleObserver
+import kotlinx.coroutines.launch
 
 
+class ListViewModel(application: Application) : BaseViewModel(application) {
 
-class ListViewModel: ViewModel() {
-    
     private val dogsService = DogsApiService()
     private val disposable = CompositeDisposable()
 
@@ -20,16 +22,7 @@ class ListViewModel: ViewModel() {
     val dogsLoadError = MutableLiveData<Boolean>()
     val loading = MutableLiveData<Boolean>()
 
-    fun refresh(){
-//        val dog1 = DogBreed("1","Bulldog", "10 years", "breed group", "breedFor", "temperament", "")
-//        val dog2 = DogBreed("2","Pitbull", "12 years", "breed group", "breedFor", "temperament", "")
-//        val dog3 = DogBreed("3","Chihuwahuwa", "8 years", "breed group", "breedFor", "temperament", "")
-//
-//        val dogList = arrayListOf<DogBreed>(dog1,dog2,dog3)
-//        dogs.value = dogList
-//        dogsLoadError.value = false
-//        loading.value = false
-
+    fun refresh() {
         fetchFromRemote()
     }
 
@@ -39,11 +32,9 @@ class ListViewModel: ViewModel() {
             dogsService.getDogs()
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribeWith(object: DisposableSingleObserver<List<DogBreed>>() {
+                .subscribeWith(object : DisposableSingleObserver<List<DogBreed>>() {
                     override fun onSuccess(dogList: List<DogBreed>) {
-                        dogs.value = dogList
-                        dogsLoadError.value = false
-                        loading.value = false
+                        storeDogsLocally(dogList)
                     }
 
                     override fun onError(e: Throwable) {
@@ -54,6 +45,27 @@ class ListViewModel: ViewModel() {
 
                 })
         )
+    }
+
+
+    private fun dogsRetrieved(dogList: List<DogBreed>) {
+        dogs.value = dogList
+        dogsLoadError.value = false
+        loading.value = false
+    }
+
+    private fun storeDogsLocally(list: List<DogBreed>) {
+        launch {
+            val dao = DogDatabase(getApplication()).dogDao()
+            dao.deleteAllDogs()
+            val result = dao.insertAll(*list.toTypedArray())
+            var i = 0
+            while (i < list.size){
+                list[i].uuid = result[i].toInt()
+                ++i
+            }
+            dogsRetrieved(list)
+        }
     }
 
     override fun onCleared() {
