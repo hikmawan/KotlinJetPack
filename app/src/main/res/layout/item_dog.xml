@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android">
-
+    <data>
+        <variable
+            name="dog"
+            type="com.ghani.kotlinjetpack.model.DogBreed" />
+    </data>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="125dp"
@@ -26,14 +30,14 @@
                 style="@style/Title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="DogName" />
+                android:text="@{dog.dogBreed}" />
 
             <TextView
                 android:id="@+id/lifespan"
                 style="@style/Text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Lifespan" />
+                android:text="@{dog.lifeSpan}" />
         </LinearLayout>
 
     </LinearLayout>
