@@ -6,6 +6,7 @@ import androidx.lifecycle.MutableLiveData
 import com.ghani.kotlinjetpack.model.DogBreed
 import com.ghani.kotlinjetpack.model.DogDatabase
 import com.ghani.kotlinjetpack.model.DogsApiService
+import com.ghani.kotlinjetpack.util.NotificationsHelper
 import com.ghani.kotlinjetpack.util.SharedPreferencesHelper
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -45,6 +46,7 @@ class ListViewModel(application: Application) : BaseViewModel(application) {
             val dogs = DogDatabase(getApplication()).dogDao().getAllDogs()
             dogsRetrieved(dogs)
             Toast.makeText(getApplication(), "Dogs retrieved from database", Toast.LENGTH_SHORT).show()
+            NotificationsHelper(getApplication()).createNotification()
         }
     }
 
