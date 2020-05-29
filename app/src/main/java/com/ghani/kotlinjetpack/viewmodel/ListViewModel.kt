@@ -13,6 +13,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.observers.DisposableSingleObserver
 import kotlinx.coroutines.launch
+import java.lang.NumberFormatException
 
 
 class ListViewModel(application: Application) : BaseViewModel(application) {
@@ -28,6 +29,7 @@ class ListViewModel(application: Application) : BaseViewModel(application) {
     val loading = MutableLiveData<Boolean>()
 
     fun refresh() {
+        checkCacheDuration()
         val updateTime = prefHelper.getUpdateTime()
         if (updateTime != null && updateTime != 0L && System.nanoTime() - updateTime < refreshTime) {
             fetchFromDatabase()
@@ -36,16 +38,28 @@ class ListViewModel(application: Application) : BaseViewModel(application) {
         }
     }
 
-    fun refreshBypassCache(){
+    private fun checkCacheDuration() {
+        val cachePreference = prefHelper.getCacheDuration()
+
+        try {
+            val cachePreferenceInt = cachePreference?.toInt() ?: 5 * 60
+            refreshTime = cachePreferenceInt.times(1000 * 1000 * 1000L)
+        }catch (e: NumberFormatException){
+            e.printStackTrace()
+        }
+    }
+
+    fun refreshBypassCache() {
         fetchFromRemote()
     }
 
-    private fun fetchFromDatabase(){
+    private fun fetchFromDatabase() {
         loading.value = true
         launch {
             val dogs = DogDatabase(getApplication()).dogDao().getAllDogs()
             dogsRetrieved(dogs)
-            Toast.makeText(getApplication(), "Dogs retrieved from database", Toast.LENGTH_SHORT).show()
+            Toast.makeText(getApplication(), "Dogs retrieved from database", Toast.LENGTH_SHORT)
+                .show()
             NotificationsHelper(getApplication()).createNotification()
         }
     }
@@ -59,7 +73,11 @@ class ListViewModel(application: Application) : BaseViewModel(application) {
                 .subscribeWith(object : DisposableSingleObserver<List<DogBreed>>() {
                     override fun onSuccess(dogList: List<DogBreed>) {
                         storeDogsLocally(dogList)
-                        Toast.makeText(getApplication(), "Dogs retrieved from endpoint", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            getApplication(),
+                            "Dogs retrieved from endpoint",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
 
                     override fun onError(e: Throwable) {
